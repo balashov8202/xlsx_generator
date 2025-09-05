@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Excel файлов с контактами</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-file-excel"></i>
+                    <h1>Генератор Excel файлов</h1>
+                </div>
+                <p class="subtitle">Создайте Excel файл с реалистичными данными IT-специалистов</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="form-container">
+                <form id="generateForm" class="form">
+                    <div class="form-section">
+                        <h2><i class="fas fa-cog"></i> Настройки генерации</h2>
+                        
+                        <div class="form-group">
+                            <label for="rowCount">
+                                <i class="fas fa-list-ol"></i>
+                                Количество записей
+                            </label>
+                            <input type="number" id="rowCount" name="rowCount" value="10000" min="100" max="50000" required>
+                            <small>От 100 до 50,000 записей</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileName">
+                                <i class="fas fa-file"></i>
+                                Имя файла
+                            </label>
+                            <input type="text" id="fileName" name="fileName" value="contacts" required>
+                            <small>Без расширения .xlsx</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="resumeLength">
+                                <i class="fas fa-file-alt"></i>
+                                Длина резюме
+                            </label>
+                            <select id="resumeLength" name="resumeLength">
+                                <option value="short">Краткое (базовое)</option>
+                                <option value="medium">Среднее (расширенное)</option>
+                                <option value="long" selected>Длинное (максимальное)</option>
+                            </select>
+                            <small>Влияет на размер файла</small>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2><i class="fas fa-info-circle"></i> Информация о файле</h2>
+                        
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <i class="fas fa-table"></i>
+                                <div>
+                                    <strong>Столбцы:</strong>
+                                    <span>12 полей</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-users"></i>
+                                <div>
+                                    <strong>Данные:</strong>
+                                    <span>IT-специалисты</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-globe"></i>
+                                <div>
+                                    <strong>Регион:</strong>
+                                    <span>Россия</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-language"></i>
+                                <div>
+                                    <strong>Язык:</strong>
+                                    <span>Русский</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="columns-info">
+                            <h3>Структура данных:</h3>
+                            <div class="columns-list">
+                                <span class="column">Фамилия</span>
+                                <span class="column">Имя</span>
+                                <span class="column">Отчество</span>
+                                <span class="column">Телефон</span>
+                                <span class="column">Email</span>
+                                <span class="column">Telegram</span>
+                                <span class="column">Должность</span>
+                                <span class="column">Компания</span>
+                                <span class="column">Зарплата</span>
+                                <span class="column">Дата рождения</span>
+                                <span class="column">Комментарий</span>
+                                <span class="column">Резюме</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="generateBtn">
+                            <i class="fas fa-download"></i>
+                            <span>Сгенерировать и скачать</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="previewBtn">
+                            <i class="fas fa-eye"></i>
+                            <span>Предварительный просмотр</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="progress-container" id="progressContainer" style="display: none;">
+                <div class="progress-header">
+                    <h3><i class="fas fa-spinner fa-spin"></i> Генерация файла...</h3>
+                    <p id="progressText">Подготовка данных...</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-stats">
+                    <div class="stat">
+                        <span class="stat-label">Записей:</span>
+                        <span class="stat-value" id="recordsCount">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Размер:</span>
+                        <span class="stat-value" id="fileSize">0 МБ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-container" id="previewContainer" style="display: none;">
+                <div class="preview-header">
+                    <h3><i class="fas fa-table"></i> Предварительный просмотр</h3>
+                    <button class="btn btn-close" id="closePreview">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="preview-content">
+                    <div class="preview-table" id="previewTable"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Генератор Excel файлов. <p>Создано для демонстрации возможностей и тестирования.</p>
+                <div class="footer-links">
+                    <a href="https://github.com/balashov8202" target="_blank" class="footer-link">
+                        <i class="fas fa-github"></i>
+                        GitHub
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-question-circle"></i>
+                        Помощь
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="toast-icon"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

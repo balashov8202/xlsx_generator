@@ -36,10 +36,25 @@ pip install -r requirements.txt
 ### 2. Запуск приложения
 
 ```bash
-python app.py
+python3 app.py
 ```
 
 Приложение будет доступно по адресу: **http://localhost:8080**
+
+### 3. Запуск в Docker
+
+```bash
+# Сборка образа
+docker build -t xlsx-generator:latest .
+
+# Запуск контейнера (порт 8080 наружу)
+docker run --rm -p 8080:8080 xlsx-generator:latest
+
+# Проверка health
+curl http://localhost:8080/health
+```
+
+Dockerfile использует `gunicorn` и запускает приложение на `0.0.0.0:8080`.
 
 ## Использование
 

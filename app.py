@@ -235,37 +235,100 @@ def generate_resume_for_position(position: str, length: str = 'long') -> str:
     return long_resume
 
 # Функция для создания Excel файла
-def create_excel_file(row_count, file_name, resume_length):
+def create_excel_file(row_count, file_name, resume_length, data_structure=None):
     # Создание новой рабочей книги и активного листа
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Контакты"
 
-    # Заголовки столбцов согласно требованиям
-    headers = [
-        "Фамилия", "Имя", "Отчество", "Телефон", "Электронная почта", 
-        "Telegram", "Должность", "Компания", "Зарплатные ожидания", 
-        "Дата рождения (ДД.ММ.ГГГГ)", "Комментарий (личные заметки)", "Текст резюме"
-    ]
+    # Определяем структуру данных
+    if data_structure is None:
+        # Стандартная структура (обратно совместимость)
+        fields = [
+            {"name": "Фамилия", "enabled": True, "type": "text"},
+            {"name": "Имя", "enabled": True, "type": "text"},
+            {"name": "Отчество", "enabled": True, "type": "text"},
+            {"name": "Телефон", "enabled": True, "type": "phone"},
+            {"name": "Электронная почта", "enabled": True, "type": "email"},
+            {"name": "Telegram", "enabled": True, "type": "text"},
+            {"name": "Должность", "enabled": True, "type": "text"},
+            {"name": "Компания", "enabled": True, "type": "text"},
+            {"name": "Зарплатные ожидания", "enabled": True, "type": "text"},
+            {"name": "Дата рождения", "enabled": True, "type": "date"},
+            {"name": "Комментарий", "enabled": True, "type": "text"},
+            {"name": "Резюме", "enabled": True, "type": "long_text"}
+        ]
+    else:
+        fields = data_structure
+
+    # Фильтруем включенные поля
+    enabled_fields = [field for field in fields if field.get("enabled", True)]
+    headers = [field["name"] for field in enabled_fields]
     ws.append(headers)
 
     # Генерация данных
     for _ in range(row_count):
-        first_name, last_name, patronymic = generate_random_name()
-        phone = generate_random_phone()
-        email = generate_random_email()
-        telegram = generate_random_telegram()
-        company, position = generate_random_it_job()
-        salary = generate_salary_expectations()
-        birth_date = generate_random_birth_date()
-        comment = generate_random_comment()
-        resume = generate_resume_for_position(position, resume_length)
+        row_data = []
         
-        # Добавляем строку с данными в правильном порядке
-        ws.append([
-            last_name, first_name, patronymic, phone, email, telegram,
-            position, company, salary, birth_date, comment, resume
-        ])
+        for field in enabled_fields:
+            field_name = field["name"].lower()
+            field_type = field.get("type", "text")
+            
+            # Генерация данных в зависимости от типа поля
+            if "фамилия" in field_name or "last" in field_name:
+                _, last_name, _ = generate_random_name()
+                row_data.append(last_name)
+            elif "имя" in field_name or "first" in field_name:
+                first_name, _, _ = generate_random_name()
+                row_data.append(first_name)
+            elif "отчество" in field_name or "patronymic" in field_name:
+                _, _, patronymic = generate_random_name()
+                row_data.append(patronymic)
+            elif "телефон" in field_name or "phone" in field_name:
+                row_data.append(generate_random_phone())
+            elif "почта" in field_name or "email" in field_name:
+                row_data.append(generate_random_email())
+            elif "telegram" in field_name.lower():
+                row_data.append(generate_random_telegram())
+            elif "должность" in field_name or "позиция" in field_name:
+                _, position = generate_random_it_job()
+                row_data.append(position)
+            elif "компания" in field_name or "работа" in field_name:
+                company, _ = generate_random_it_job()
+                row_data.append(company)
+            elif "зарплата" in field_name or "salary" in field_name:
+                row_data.append(generate_salary_expectations())
+            elif "дата" in field_name or ("рожд" in field_name):
+                row_data.append(generate_random_birth_date())
+            elif "комментарий" in field_name or "примечан" in field_name:
+                row_data.append(generate_random_comment())
+            elif "резюме" in field_name or "текст резю" in field_name:
+                company, position = generate_random_it_job()
+                resume = generate_resume_for_position(position, resume_length)
+                row_data.append(resume)
+            else:
+                # Для новых полей используем универсальную генерацию
+                if field_type == "phone":
+                    row_data.append(generate_random_phone())
+                elif field_type == "email":
+                    row_data.append(generate_random_email())
+                elif field_type == "date":
+                    row_data.append(generate_random_birth_date())
+                elif field_type == "number":
+                    row_data.append(str(random.randint(1, 1000)))
+                elif field_type == "long_text":
+                    company, position = generate_random_it_job()
+                    resume = generate_resume_for_position(position, resume_length)
+                    row_data.append(resume)
+                else:  # text
+                    if random.choice([True, False]):
+                        first_name, last_name, _ = generate_random_name()
+                        row_data.append(f"{first_name} {last_name}")
+                    else:
+                        company, _ = generate_random_it_job()
+                        row_data.append(company)
+        
+        ws.append(row_data)
 
     # Сохранение файла во временную директорию
     temp_dir = tempfile.gettempdir()
@@ -288,6 +351,7 @@ def generate_file():
         row_count = data.get('rowCount', 10000)
         file_name = data.get('fileName', 'contacts')
         resume_length = data.get('resumeLength', 'long')
+        data_structure = data.get('dataStructure', None)
         
         if not isinstance(row_count, int) or row_count < 100 or row_count > 50000:
             return jsonify({'error': 'Количество записей должно быть от 100 до 50,000'}), 400
@@ -298,8 +362,17 @@ def generate_file():
         if resume_length not in ['short', 'medium', 'long']:
             return jsonify({'error': 'Неверная длина резюме'}), 400
         
-        # Создание файла
-        file_path = create_excel_file(row_count, file_name, resume_length)
+        # Добавлена валидация структуры данных
+        if data_structure:
+            if not isinstance(data_structure, list):
+                return jsonify({'error': 'Структура данных должна быть массивом'}), 400
+            
+            enabled_fields = [field for field in data_structure if field.get('enabled', True)]
+            if len(enabled_fields) == 0:
+                return jsonify({'error': 'Необходимо включить хотя бы одно поле'}), 400
+        
+        # Создание файла с учётом кастомной структуры
+        file_path = create_excel_file(row_count, file_name, resume_length, data_structure)
         
         # Отправка файла
         return send_file(

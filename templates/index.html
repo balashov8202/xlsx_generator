@@ -59,6 +59,45 @@
                     </div>
 
                     <div class="form-section">
+                        <h2><i class="fas fa-edit"></i> Редактировать структуру данных</h2>
+                        <div class="structure-editor">
+                            <div class="structure-controls">
+                                <button type="button" class="btn btn-outline" id="editStructureBtn">
+                                    <i class="fas fa-cog"></i> Настроить поля
+                                </button>
+                                <div class="current-structure-info">
+                                    <span id="currentFieldsCount">12 поля</span>
+                                </div>
+                            </div>
+                            
+                            <div id="structureEditor" style="display: none;" class="structure-editor-panel">
+                                <div class="structure-header">
+                                    <h3>Настройка полей данных</h3>
+                                    <button type="button" class="btn btn-close" id="closeStructureEditor">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="structure-content">
+                                    <div id="customFields" class="custom-fields">
+                                        <!-- Поля будут добавляться динамически -->
+                                    </div>
+                                    <div class="structure-actions">
+                                        <button type="button" class="btn btn-success" id="addFieldBtn">
+                                            <i class="fas fa-plus"></i> Добавить поле
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="saveStructureBtn">
+                                            <i class="fas fa-save"></i> Сохранить структуру
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="structurePreview" class="structure-preview">
+                                <!-- Показ структуры будет здесь -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
                         <h2><i class="fas fa-info-circle"></i> Информация о файле</h2>
                         
                         <div class="info-grid">
@@ -66,7 +105,7 @@
                                 <i class="fas fa-table"></i>
                                 <div>
                                     <strong>Столбцы:</strong>
-                                    <span>12 полей</span>
+                                    <span id="columnsCount">12 полей</span>
                                 </div>
                             </div>
                             <div class="info-item">
@@ -92,21 +131,10 @@
                             </div>
                         </div>
 
-                        <div class="columns-info">
+                        <div class="columns-info" id="columnsInfo">
                             <h3>Структура данных:</h3>
-                            <div class="columns-list">
-                                <span class="column">Фамилия</span>
-                                <span class="column">Имя</span>
-                                <span class="column">Отчество</span>
-                                <span class="column">Телефон</span>
-                                <span class="column">Email</span>
-                                <span class="column">Telegram</span>
-                                <span class="column">Должность</span>
-                                <span class="column">Компания</span>
-                                <span class="column">Зарплата</span>
-                                <span class="column">Дата рождения</span>
-                                <span class="column">Комментарий</span>
-                                <span class="column">Резюме</span>
+                            <div class="columns-list" id="columnsList">
+                                <!-- Колонки будут отображаться здесь -->
                             </div>
                         </div>
                     </div>

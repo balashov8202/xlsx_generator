@@ -433,14 +433,32 @@ body {
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     padding: 20px;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
+    transform: translateX(500px);
+    transition: transform 0.3s ease, opacity 0.3s ease;
     z-index: 1000;
     min-width: 300px;
+    opacity: 0;
+    visibility: hidden;
 }
 
 .toast.show {
     transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    display: block;
+}
+
+.toast:not(.show) {
+    transform: translateX(500px);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.toast[style*="display: none"] {
+    display: none !important;
+    visibility: hidden !important;
+    transform: translateX(500px) !important;
+    opacity: 0 !important;
 }
 
 .toast-content {
@@ -521,6 +539,181 @@ body {
 
 .fa-spin {
     animation: spin 1s linear infinite;
+}
+
+/* Structure Editor Styles */
+.structure-editor {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.structure-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #667eea;
+    color: #667eea;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    min-width: auto;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.current-structure-info {
+    background: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.structure-editor-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.structure-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.structure-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.structure-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.custom-fields {
+    flex: 1;
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.field-item {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.2s ease;
+}
+
+.field-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.field-item input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.field-item input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.field-item .field-type {
+    width: 120px;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+}
+
+.delete-field {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.delete-field:hover {
+    background: #dc2626;
+}
+
+.structure-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: auto;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    min-width: auto;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+}
+
+.structure-preview {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.structure-preview h4 {
+    color: #374151;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 /* Fade in animation */

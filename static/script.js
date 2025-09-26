@@ -21,6 +21,33 @@ const fileSize = document.getElementById('fileSize');
 // Preview elements
 const previewTable = document.getElementById('previewTable');
 
+// Structure editor elements
+const editStructureBtn = document.getElementById('editStructureBtn');
+const structureEditor = document.getElementById('structureEditor');
+const closeStructureEditor = document.getElementById('closeStructureEditor');
+const addFieldBtn = document.getElementById('addFieldBtn');
+const saveStructureBtn = document.getElementById('saveStructureBtn');
+const customFields = document.getElementById('customFields');
+const currentFieldsCount = document.getElementById('currentFieldsCount');
+const columnsCount = document.getElementById('columnsCount');
+const columnsList = document.getElementById('columnsList');
+
+// Current data structure configuration
+let dataStructure = [
+    { name: 'Фамилия', type: 'text', enabled: true },
+    { name: 'Имя', type: 'text', enabled: true },
+    { name: 'Отчество', type: 'text', enabled: true },
+    { name: 'Телефон', type: 'text', enabled: true },
+    { name: 'Электронная почта', type: 'text', enabled: true },
+    { name: 'Telegram', type: 'text', enabled: true },
+    { name: 'Должность', type: 'text', enabled: true },
+    { name: 'Компания', type: 'text', enabled: true },
+    { name: 'Зарплатные ожидания', type: 'text', enabled: true },
+    { name: 'Дата рождения', type: 'text', enabled: true },
+    { name: 'Комментарий', type: 'text', enabled: true },
+    { name: 'Резюме', type: 'long_text', enabled: true }
+];
+
 // Sample data for preview
 const sampleData = [
     {
@@ -71,6 +98,9 @@ const sampleData = [
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     updateFileSizeEstimate();
+    initializeStructureEditor();
+    loadStructureFromStorage();
+    updateStructureDisplay();
 });
 
 // Event listeners
@@ -83,12 +113,28 @@ function initializeEventListeners() {
     rowCountInput.addEventListener('input', updateFileSizeEstimate);
     resumeLengthSelect.addEventListener('change', updateFileSizeEstimate);
     
+    // Structure editor event listeners
+    editStructureBtn.addEventListener('click', showStructureEditor);
+    closeStructureEditor.addEventListener('click', hideStructureEditor);
+    addFieldBtn.addEventListener('click', addNewField);
+    saveStructureBtn.addEventListener('click', saveStructure);
+    
     // Close preview when clicking outside
     document.addEventListener('click', function(e) {
         if (previewContainer.style.display === 'block' && 
             !previewContainer.contains(e.target) && 
             !previewBtn.contains(e.target)) {
             hidePreview();
+        }
+    });
+
+    // Close structure editor when clicking outside
+    document.addEventListener('click', function(e) {
+        if (structureEditor.style.display === 'block' && 
+            structureEditor.style.display !== 'none' &&
+            !structureEditor.contains(e.target) && 
+            !editStructureBtn.contains(e.target)) {
+            hideStructureEditor();
         }
     });
 }
@@ -101,7 +147,8 @@ async function handleFormSubmit(e) {
     const data = {
         rowCount: parseInt(formData.get('rowCount')),
         fileName: formData.get('fileName'),
-        resumeLength: formData.get('resumeLength')
+        resumeLength: formData.get('resumeLength'),
+        dataStructure: dataStructure
     };
     
     // Validate form data
@@ -112,6 +159,13 @@ async function handleFormSubmit(e) {
     
     if (!data.fileName.trim()) {
         showToast('Введите имя файла', 'error');
+        return;
+    }
+    
+    // Check if at least one field is enabled
+    const enabledFields = dataStructure.filter(field => field.enabled);
+    if (enabledFields.length === 0) {
+        showToast('Выберите хотя бы одно поле для генерации', 'error');
         return;
     }
     
@@ -301,6 +355,17 @@ function showToast(message, type = 'success') {
     const toastIcon = toast.querySelector('.toast-icon');
     const toastMessage = toast.querySelector('.toast-message');
     
+    // Reset any previous hide timer
+    if (toast.currentHideTimer) {
+        clearTimeout(toast.currentHideTimer);
+    }
+    
+    // Reset toast to initial state and make it visible
+    toast.style.display = 'block';
+    toast.style.visibility = 'visible';
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(0)';
+    
     // Set icon based on type
     if (type === 'success') {
         toastIcon.className = 'toast-icon fas fa-check-circle';
@@ -312,10 +377,21 @@ function showToast(message, type = 'success') {
     
     toastMessage.textContent = message;
     
-    // Auto hide after 5 seconds
-    setTimeout(() => {
+    // Auto hide after different times based on type
+    const hideDelay = type === 'success' ? 8000 : 5000;
+    toast.currentHideTimer = setTimeout(() => {
+        // Immediately hide completely
+        toast.style.transform = 'translateX(500px)';
+        toast.style.opacity = '0';
+        toast.style.visibility = 'hidden';
         toast.classList.remove('show');
-    }, 5000);
+        
+        // Force remove from DOM visibility completely
+        setTimeout(() => {
+            toast.style.display = 'none';
+            toast.classList.remove('success', 'error');
+        }, 100); // Much shorter delay to ensure it's hidden
+    }, hideDelay);
 }
 
 // Utility functions
@@ -371,6 +447,125 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Structure Editor Functions
+function initializeStructureEditor() {
+    populateCustomFields();
+    updateStructureDisplay();
+}
+
+function showStructureEditor() {
+    structureEditor.style.display = 'block';
+    populateCustomFields();
+}
+
+function hideStructureEditor() {
+    structureEditor.style.display = 'none';
+}
+
+function populateCustomFields() {
+    customFields.innerHTML = '';
+    
+    dataStructure.forEach((field, index) => {
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'field-item';
+        fieldDiv.innerHTML = `
+            <input type="text" value="${field.name}" placeholder="Название поля" onchange="updateFieldName(${index}, this.value)" />
+            <select class="field-type" onchange="updateFieldType(${index}, this.value)">
+                <option value="text" ${field.type === 'text' ? 'selected' : ''}>Текст</option>
+                <option value="long_text" ${field.type === 'long_text' ? 'selected' : ''}>Длинный текст</option>
+                <option value="number" ${field.type === 'number' ? 'selected' : ''}>Число</option>
+                <option value="date" ${field.type === 'date' ? 'selected' : ''}>Дата</option>
+                <option value="email" ${field.type === 'email' ? 'selected' : ''}>Email</option>
+                <option value="phone" ${field.type === 'phone' ? 'selected' : ''}>Телефон</option>
+            </select>
+            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                <input type="checkbox" ${field.enabled ? 'checked' : ''} onchange="toggleFieldEnabled(${index}, this.checked)" />
+                Включено
+            </label>
+            <button class="delete-field" onclick="removeField(${index})" title="Удалить поле">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        customFields.appendChild(fieldDiv);
+    });
+}
+
+function addNewField() {
+    const newField = {
+        name: 'Новое поле',
+        type: 'text',
+        enabled: true
+    };
+    dataStructure.push(newField);
+    populateCustomFields();
+    updateStructureDisplay();
+}
+
+function updateFieldName(index, name) {
+    dataStructure[index].name = name;
+    updateStructureDisplay();
+}
+
+function updateFieldType(index, type) {
+    dataStructure[index].type = type;
+}
+
+function toggleFieldEnabled(index, enabled) {
+    dataStructure[index].enabled = enabled;
+    updateStructureDisplay();
+}
+
+function removeField(index) {
+    dataStructure.splice(index, 1);
+    populateCustomFields();
+    updateStructureDisplay();
+}
+
+function saveStructure() {
+    updateStructureDisplay();
+    saveStructureToStorage();
+    hideStructureEditor();
+    showToast('Структура данных сохранена!', 'success');
+}
+
+function saveStructureToStorage() {
+    try {
+        localStorage.setItem('dataStructure', JSON.stringify(dataStructure));
+    } catch (error) {
+        console.warn('Не удалось сохранить структуру данных:', error);
+    }
+}
+
+function loadStructureFromStorage() {
+    try {
+        const savedStructure = localStorage.getItem('dataStructure');
+        if (savedStructure) {
+            dataStructure = JSON.parse(savedStructure);
+        }
+    } catch (error) {
+        console.warn('Не удалось загрузить структуру данных:', error);
+        // Используем структуру по умолчанию
+    }
+}
+
+function updateStructureDisplay() {
+    const enabledFields = dataStructure.filter(field => field.enabled);
+    const fieldCount = enabledFields.length;
+    
+    // Update counts
+    currentFieldsCount.textContent = `${fieldCount} ${fieldCount === 1 ? 'поле' : 'полей'}`;
+    columnsCount.textContent = `${fieldCount} ${fieldCount === 1 ? 'поле' : 'полей'}`;
+    
+    // Update columns list
+    columnsList.innerHTML = '';
+    enabledFields.forEach(field => {
+        const span = document.createElement('span');
+        span.className = 'column';
+        span.textContent = field.name;
+        columnsList.appendChild(span);
+    });
+}
 
 // Add ripple effect CSS
 const style = document.createElement('style');
